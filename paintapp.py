@@ -65,6 +65,28 @@ class PaintApp:
                                   onvalue=1, offvalue=0)
 
         the_menu.add_cascade(label="Font", menu=font_menu)
+
+        #Tool menu
+        tool_menu = Menu(the_menu, tearoff=0)
+        tool_menu.add_radiobutton(label="Pencil",
+                                  variable=self.drawing_tool,
+                                  value="pencil")
+        tool_menu.add_radiobutton(label="Line",
+                                  variable=self.drawing_tool,
+                                  value="line")
+        tool_menu.add_radiobutton(label="Arc",
+                                  variable=self.drawing_tool,
+                                  value="arc")
+        tool_menu.add_radiobutton(label="Oval",
+                                  variable=self.drawing_tool,
+                                  value="oval")
+        tool_menu.add_radiobutton(label="Rectangle",
+                                  variable=self.drawing_tool,
+                                  value="rectangle")
+        tool_menu.add_radiobutton(label="Text",
+                                  variable=self.drawing_tool,
+                                  value="text")
+        the_menu.add_cascade(label="Tool", menu=tool_menu)
         root.config(menu=the_menu)
 
     def __init__(self, root):
