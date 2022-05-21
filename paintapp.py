@@ -70,16 +70,16 @@ class PaintApp:
         # Same process for Font size button
         font_size_menu = Menu(font_menu, tearoff=0)
         font_size_menu.add_radiobutton(label="12",
-                                       variable=self.text_font,
+                                       variable=self.text_size,
                                        value=12)
         font_size_menu.add_radiobutton(label="16",
-                                       variable=self.text_font,
+                                       variable=self.text_size,
                                        value=16)
         font_size_menu.add_radiobutton(label="20",
-                                       variable=self.text_font,
+                                       variable=self.text_size,
                                        value=20)
         font_size_menu.add_radiobutton(label="25",
-                                       variable=self.text_font,
+                                       variable=self.text_size,
                                        value=25)
         # Font size menu gets added
         font_menu.add_cascade(label="Font Size",
@@ -233,7 +233,7 @@ class PaintApp:
 
     def text_draw(self, event=None):
         if None not in (self.x1_line_pt, self.y1_line_pt):
-            text_font = tkinter.font.Font(family='Comic Sans',
+            text_font = tkinter.font.Font(family=self.text_font.get(),
                                           size=self.text_size.get(),
                                           weight=self.bold_text.get(),
                                           slant=self.italic_text.get())
@@ -244,7 +244,9 @@ class PaintApp:
                 event.widget.create_text(self.x1_line_pt,
                                          self.y1_line_pt,
                                          font=text_font,
-                                         text=user_text)
+                                         text=user_text,
+                                         fill=self.fill_color.get())
+                print(self.text_size.get())
 
     # function that provides interface to pick a color
     def pick_fill(self, event=None):
