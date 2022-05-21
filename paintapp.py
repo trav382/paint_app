@@ -1,16 +1,16 @@
 from tkinter import *
 import tkinter.font
 from tkinter.colorchooser import *
-
+from tkinter import simpledialog
 root = Tk()
 root.geometry("800x600")
-
+root.title("Paint App")
 
 class PaintApp:
     text_font = StringVar()
     text_size = IntVar()
-    bold_text = IntVar()
-    italic_text = IntVar()
+    bold_text = StringVar()
+    italic_text = StringVar()
     drawing_tool = StringVar()
 
     # Draw settings
@@ -23,6 +23,8 @@ class PaintApp:
 
     # Needed for finding where mouse is clicked and when it is released
     x_pos, y_pos = None, None
+    # For drawing shapes
+    # x1/y1 for where you click, x2/y2 where you release
     x1_line_pt, y1_line_pt, x2_line_pt, y2_line_pt = None, None, None, None
 
     @staticmethod
@@ -85,10 +87,10 @@ class PaintApp:
 
         font_menu.add_checkbutton(label="Bold",
                                   variable=self.bold_text,
-                                  onvalue=1, offvalue=0)
+                                  onvalue='bold', offvalue='normal')
         font_menu.add_checkbutton(label="Italic",
                                   variable=self.italic_text,
-                                  onvalue=1, offvalue=0)
+                                  onvalue='italic', offvalue='roman')
 
         the_menu.add_cascade(label="Font", menu=font_menu)
 
@@ -187,19 +189,62 @@ class PaintApp:
             self.y_pos = event.y
 
     def line_draw(self, event=None):
-        pass
+        # Making sure they all have values
+        if None not in (self.x1_line_pt,
+                        self.y1_line_pt,
+                        self.x2_line_pt,
+                        self.y2_line_pt):
+            # The drawing area
+            event.widget.create_line(self.x1_line_pt,
+                                     self.y1_line_pt,
+                                     self.x2_line_pt,
+                                     self.y2_line_pt,
+                                     smooth=TRUE,
+                                     fill=self.stroke_color.get())
 
     def arc_draw(self, event=None):
-        pass
+
+        if None not in (self.x1_line_pt,
+                        self.y1_line_pt,
+                        self.x2_line_pt,
+                        self.y2_line_pt):
+            cords = self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt
+            event.widget.create_arc(cords, start=0, extent=150, style=CHORD, fill=self.fill_color.get())
 
     def oval_draw(self, event=None):
-        pass
+        if None not in (self.x1_line_pt,
+                        self.y1_line_pt,
+                        self.x2_line_pt,
+                        self.y2_line_pt):
+            event.widget.create_oval(self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt,
+                                     fill=self.fill_color.get(),
+                                     outline=self.stroke_color.get(),
+                                     width=self.stroke_size.get())
 
     def rectangle_draw(self, event=None):
-        pass
+        if None not in (self.x1_line_pt,
+                        self.y1_line_pt,
+                        self.x2_line_pt,
+                        self.y2_line_pt):
+            event.widget.create_rectangle(self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt,
+                                     fill=self.fill_color.get(),
+                                     outline=self.stroke_color.get(),
+                                     width=self.stroke_size.get())
 
     def text_draw(self, event=None):
-        pass
+        if None not in (self.x1_line_pt, self.y1_line_pt):
+            text_font = tkinter.font.Font(family='Comic Sans',
+                                          size=self.text_size.get(),
+                                          weight=self.bold_text.get(),
+                                          slant=self.italic_text.get())
+            user_text = simpledialog.askstring("Input",
+                                               "Enter text",
+                                               parent=root)
+            if user_text is not None:
+                event.widget.create_text(self.x1_line_pt,
+                                         self.y1_line_pt,
+                                         font=text_font,
+                                         text=user_text)
 
     # function that provides interface to pick a color
     def pick_fill(self, event=None):
@@ -220,8 +265,8 @@ class PaintApp:
         drawing_area.pack()
         self.text_font.set("Times")
         self.text_size.set(20)
-        self.bold_text.set(0)
-        self.italic_text.set(0)
+        self.bold_text.set('normal')
+        self.italic_text.set('roman')
         self.drawing_tool.set("pencil")
         self.stroke_size.set(3)
         self.fill_color.set('#000000')
