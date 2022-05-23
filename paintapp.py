@@ -3,12 +3,14 @@ import tkinter.font
 from tkinter.colorchooser import *
 from tkinter import simpledialog
 from PIL import Image, ImageDraw, ImageTk
+from tkinter.messagebox import askyesno
 import os
 import tkinter.filedialog
 
 root = Tk()
 root.geometry("800x600")
 root.title("Paint App")
+root.configure(background='white')
 
 
 class PaintApp:
@@ -32,13 +34,20 @@ class PaintApp:
     # x1/y1 for where you click, x2/y2 where you release
     x1_line_pt, y1_line_pt, x2_line_pt, y2_line_pt = None, None, None, None
 
+    # Create new image
     my_image = Image.new("RGB", (800, 600), (255, 255, 255))
     draw = ImageDraw.Draw(my_image)
-    drawing_area = Canvas(root, width=800, height=600)
+    drawing_area = Canvas(root, width=800, height=600, bg='white')
 
     @staticmethod
     def quit_app():
         root.quit()
+
+    def clear_file(self):
+        answer = askyesno(title='Confirmation',
+                          message="Are you sure you want to clear the canvas?")
+        if answer:
+            self.drawing_area.delete('all')
 
     def save_file(self, event=None):
         file = tkinter.filedialog.asksaveasfile(mode='w', defaultextension=".png")
@@ -67,6 +76,8 @@ class PaintApp:
 
         # Line separator between Save and Quit
         file_menu.add_separator()
+
+        file_menu.add_command(label="Clear", command=self.clear_file)
 
         # Clicking on quit will execute the quit function
         file_menu.add_command(label="Quit", command=self.quit_app)
@@ -138,6 +149,9 @@ class PaintApp:
         tool_menu.add_radiobutton(label="Text",
                                   variable=self.drawing_tool,
                                   value="text")
+        tool_menu.add_radiobutton(label="Eraser",
+                                  variable=self.drawing_tool,
+                                  value="eraser")
 
         # Adding Tool menu to the Main menu
         the_menu.add_cascade(label="Tool", menu=tool_menu)
@@ -162,6 +176,12 @@ class PaintApp:
         stroke_width_submenu.add_radiobutton(label="5",
                                              variable=self.stroke_size,
                                              value=5)
+        stroke_width_submenu.add_radiobutton(label="10",
+                                             variable=self.stroke_size,
+                                             value=10)
+        stroke_width_submenu.add_radiobutton(label="25",
+                                             variable=self.stroke_size,
+                                             value=25)
         color_menu.add_cascade(label="Stroke Size",
                                menu=stroke_width_submenu)
         the_menu.add_cascade(label="Color", menu=color_menu)
@@ -194,11 +214,34 @@ class PaintApp:
             self.rectangle_draw(event)
         elif self.drawing_tool.get() == "text":
             self.text_draw(event)
+        elif self.drawing_tool.get() == "eraser":
+            self.erase_tool(event)
 
+    # Function for mouse movement
     def motion(self, event=None):
         if self.drawing_tool.get() == "pencil":
             self.pencil_draw(event)
+        elif self.drawing_tool.get() == "eraser":
+            self.erase_tool(event)
 
+    # Eraser. Draws white over canvas
+    # TODO erase objects instead
+    def erase_tool(self, event=None):
+        if self.left_but == "down":
+            if self.x_pos is not None and self.y_pos is not None:
+                print("colorr ", self.stroke_color.get())
+                event.widget.create_line(self.x_pos, self.y_pos, event.x, event.y,
+                                         smooth=TRUE,
+                                         fill='white',
+                                         width=self.stroke_size.get())
+                self.draw.line([(self.x_pos, self.y_pos),
+                                (event.x, event.y)],
+                               fill='white',
+                               width=self.stroke_size.get())
+            self.x_pos = event.x
+            self.y_pos = event.y
+
+    # Function for pencil
     def pencil_draw(self, event=None):
         if self.left_but == "down":
             if self.x_pos is not None and self.y_pos is not None:
@@ -214,6 +257,7 @@ class PaintApp:
             self.x_pos = event.x
             self.y_pos = event.y
 
+    # Function for drawing lines
     def line_draw(self, event=None):
         # Making sure they all have values
         if None not in (self.x1_line_pt,
@@ -296,8 +340,6 @@ class PaintApp:
         if None not in fill_color:
             self.fill_color.set(fill_color[1])
 
-
-
     def pick_stroke(self, event=None):
         stroke_color = askcolor(title='Pick Stroke Color')
         if None not in stroke_color:
@@ -313,6 +355,7 @@ class PaintApp:
         self.italic_text.set('roman')
         self.drawing_tool.set("pencil")
         self.stroke_size.set(3)
+
         self.fill_color.set('#000000')
         self.stroke_color.set('#000000')
 
