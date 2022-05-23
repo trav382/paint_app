@@ -2,9 +2,14 @@ from tkinter import *
 import tkinter.font
 from tkinter.colorchooser import *
 from tkinter import simpledialog
+from PIL import Image, ImageDraw, ImageTk
+import os
+import tkinter.filedialog
+
 root = Tk()
 root.geometry("800x600")
 root.title("Paint App")
+
 
 class PaintApp:
     text_font = StringVar()
@@ -27,9 +32,26 @@ class PaintApp:
     # x1/y1 for where you click, x2/y2 where you release
     x1_line_pt, y1_line_pt, x2_line_pt, y2_line_pt = None, None, None, None
 
+    my_image = Image.new("RGB", (800, 600), (255, 255, 255))
+    draw = ImageDraw.Draw(my_image)
+    drawing_area = Canvas(root, width=800, height=600)
+
     @staticmethod
     def quit_app():
         root.quit()
+
+    def save_file(self, event=None):
+        file = tkinter.filedialog.asksaveasfile(mode='w', defaultextension=".png")
+        if file:
+            file_path = os.path.abspath(file.name)
+            self.my_image.save(file_path)
+
+    def open_file(self, event=None):
+        file_path = tkinter.filedialog.askopenfilename(parent=root)
+        if file_path:
+            my_pic = Image.open(file_path)
+            self.drawing_area.image = ImageTk.PhotoImage(my_pic)
+            self.drawing_area.create_image(0, 0, image=self.drawing_area.image, anchor='nw')
 
     def make_menu_bar(self):
         # Creates menu object
@@ -40,8 +62,8 @@ class PaintApp:
         file_menu = Menu(the_menu, tearoff=0)
 
         # Labels in the File Menu
-        file_menu.add_command(label="Open")
-        file_menu.add_command(label="Save")
+        file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Save", command=self.save_file)
 
         # Line separator between Save and Quit
         file_menu.add_separator()
@@ -56,7 +78,7 @@ class PaintApp:
         # Creates pull down menu
         font_menu = Menu(the_menu, tearoff=0)
 
-        #Creates pull down menu for Font menu
+        # Creates pull down menu for Font menu
         font_type_menu = Menu(font_menu, tearoff=0)
 
         # Buttons for Font type button in the Font submenu
@@ -124,9 +146,9 @@ class PaintApp:
         color_menu = Menu(the_menu, tearoff=0)
 
         color_menu.add_command(label="Fill", command=self.pick_fill)
-        color_menu.add_command(label="Stroke",command=self.pick_stroke)
+        color_menu.add_command(label="Stroke", command=self.pick_stroke)
 
-        #Creatin submenu for Stroke size
+        # Creatin submenu for Stroke size
         stroke_width_submenu = Menu(color_menu, tearoff=0)
         stroke_width_submenu.add_radiobutton(label="2",
                                              variable=self.stroke_size,
@@ -185,6 +207,10 @@ class PaintApp:
                                          smooth=TRUE,
                                          fill=self.stroke_color.get(),
                                          width=self.stroke_size.get())
+                self.draw.line([(self.x_pos, self.y_pos),
+                                (event.x, event.y)],
+                               fill=self.stroke_color.get(),
+                               width=self.stroke_size.get())
             self.x_pos = event.x
             self.y_pos = event.y
 
@@ -201,6 +227,10 @@ class PaintApp:
                                      self.y2_line_pt,
                                      smooth=TRUE,
                                      fill=self.stroke_color.get())
+            self.draw.line([(self.x1_line_pt, self.y1_line_pt),
+                            self.x2_line_pt, self.y2_line_pt],
+                           fill=self.stroke_color.get(),
+                           width=self.stroke_size.get())
 
     def arc_draw(self, event=None):
 
@@ -211,6 +241,10 @@ class PaintApp:
             cords = self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt
             event.widget.create_arc(cords, start=0, extent=150, style=CHORD, fill=self.fill_color.get())
 
+            self.draw.arc([(self.x1_line_pt, self.y1_line_pt),
+                           self.x2_line_pt, self.y2_line_pt],
+                          start=0, end=150, fill=self.stroke_color.get())
+
     def oval_draw(self, event=None):
         if None not in (self.x1_line_pt,
                         self.y1_line_pt,
@@ -220,6 +254,10 @@ class PaintApp:
                                      fill=self.fill_color.get(),
                                      outline=self.stroke_color.get(),
                                      width=self.stroke_size.get())
+            self.draw.ellipse([(self.x1_line_pt, self.y1_line_pt),
+                               self.x2_line_pt, self.y2_line_pt],
+                              fill=self.fill_color.get(),
+                              outline=self.stroke_color.get())
 
     def rectangle_draw(self, event=None):
         if None not in (self.x1_line_pt,
@@ -227,9 +265,13 @@ class PaintApp:
                         self.x2_line_pt,
                         self.y2_line_pt):
             event.widget.create_rectangle(self.x1_line_pt, self.y1_line_pt, self.x2_line_pt, self.y2_line_pt,
-                                     fill=self.fill_color.get(),
-                                     outline=self.stroke_color.get(),
-                                     width=self.stroke_size.get())
+                                          fill=self.fill_color.get(),
+                                          outline=self.stroke_color.get(),
+                                          width=self.stroke_size.get())
+            self.draw.rectangle([(self.x1_line_pt, self.y1_line_pt),
+                                 self.x2_line_pt, self.y2_line_pt],
+                                fill=self.fill_color.get(),
+                                outline=self.stroke_color.get())
 
     def text_draw(self, event=None):
         if None not in (self.x1_line_pt, self.y1_line_pt):
@@ -254,7 +296,7 @@ class PaintApp:
         if None not in fill_color:
             self.fill_color.set(fill_color[1])
 
-        print("didn't work")
+
 
     def pick_stroke(self, event=None):
         stroke_color = askcolor(title='Pick Stroke Color')
@@ -263,8 +305,8 @@ class PaintApp:
             print("color ", self.stroke_color.get())
 
     def __init__(self, root):
-        drawing_area = Canvas(root, width=800, height=600)
-        drawing_area.pack()
+
+        self.drawing_area.pack()
         self.text_font.set("Times")
         self.text_size.set(20)
         self.bold_text.set('normal')
@@ -277,12 +319,12 @@ class PaintApp:
         self.make_menu_bar()
 
         # Set focus for catching events to the canvas
-        drawing_area.focus_force()
+        self.drawing_area.focus_force()
 
         # binds motion, clicking and releasing of mouse
-        drawing_area.bind("<Motion>", self.motion)
-        drawing_area.bind("<ButtonPress-1>", self.left_but_down)
-        drawing_area.bind("<ButtonRelease-1>", self.left_but_up)
+        self.drawing_area.bind("<Motion>", self.motion)
+        self.drawing_area.bind("<ButtonPress-1>", self.left_but_down)
+        self.drawing_area.bind("<ButtonRelease-1>", self.left_but_up)
 
 
 paint_app = PaintApp(root)
